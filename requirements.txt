@@ -1,0 +1,22 @@
+# Ustad runtime dependencies.
+#
+# torch is deliberately NOT listed here. It must be installed from a platform-specific
+# index so the right CUDA build is selected (a pinned "+cu126" here would break CPU-only
+# and non-NVIDIA machines). See README.md, or just run scripts/quickstart.ps1.
+#
+#   NVIDIA GPU:  pip install torch --index-url https://download.pytorch.org/whl/cu126
+#   CPU only:    pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+transformers>=4.45
+peft>=0.13
+accelerate>=1.1
+huggingface_hub>=0.25
+safetensors>=0.4
+
+# 4-bit NF4 quantisation. No CUDA build exists for macOS, so it is skipped there and
+# Ustad falls back to the CPU preset.
+bitsandbytes>=0.43; platform_system != "Darwin"
+
+fastapi>=0.115
+uvicorn[standard]>=0.30
+httpx>=0.27

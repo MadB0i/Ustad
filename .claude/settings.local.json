@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"D:/Projects/Ustad\" status --short)",
+      "Bash(py -0p)",
+      "Bash(python -m pip --version)",
+      "Bash(nvidia-smi)",
+      "Bash(curl -s --max-time 4 http://localhost:11434/api/tags)",
+      "Bash(wmic computersystem *)",
+      "Bash(powershell -NoProfile -Command \"\\(Get-CimInstance Win32_ComputerSystem\\).TotalPhysicalMemory\")",
+      "Bash(powershell -NoProfile -Command \"\\(Get-CimInstance Win32_Processor\\).Name; \\(Get-CimInstance Win32_Processor\\).NumberOfLogicalProcessors\")",
+      "Bash(powershell -NoProfile -Command \"Get-PSDrive D | Select-Object -ExpandProperty Free\")",
+      "Bash(\"/c/Users/rupjy/AppData/Local/Programs/Ollama/ollama\" list *)",
+      "Bash(echo \"--- exit:$? ---\")",
+      "Bash(export OLLAMA_HOST=127.0.0.1:11434)",
+      "Bash(\"/c/Users/rupjy/AppData/Local/Programs/Ollama/ollama\" serve *)",
+      "Bash(python -m venv .venv)",
+      "Bash(\"D:/Projects/Ustad/.venv/Scripts/python.exe\" --version)",
+      "Bash(netstat -ano)",
+      "Bash(curl -s --max-time 5 http://127.0.0.1:11434/api/tags)",
+      "Bash(\".venv/Scripts/python.exe\" -m pip install --disable-pip-version-check torch --index-url https://download.pytorch.org/whl/cu126)",
+      "Bash(\"/c/Users/rupjy/AppData/Local/Programs/Ollama/ollama\" pull *)",
+      "Bash(ollama list *)",
+      "Bash(tasklist //FI \"IMAGENAME eq python.exe\")",
+      "Bash(.venv/Scripts/python.exe -m pip install --disable-pip-version-check -r requirements.txt)",
+      "Bash(.venv/Scripts/python.exe scripts/smoke_test.py --check)",
+      "Bash(.venv/Scripts/python.exe -u scripts/smoke_test.py --build --n 24 --teacher qwen2.5:3b)",
+      "Bash(bash -n scripts/quickstart.sh)",
+      "Bash(.venv/Scripts/python.exe -c ' *)",
+      "Bash(sed -n '/^.\\\\[1mdataset/,$p' \"C:\\\\Users\\\\rupjy\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\D--Projects-Ustad\\\\da3baa22-6c24-47d7-8dab-c209dcfa5e45\\\\tasks\\\\bfx7xphcv.output\" | head -70)",
+      "Bash(.venv/Scripts/python.exe -u scripts/smoke_test.py --train --max-steps 30)"
+    ]
+  }
+}

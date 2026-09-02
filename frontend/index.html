@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ustad — local distillation studio</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="titlebar">
+  <div class="brand">
+    <span class="mark" aria-hidden="true"></span>
+    <span class="name">Ustad</span>
+    <span class="sub">local distillation studio</span>
+  </div>
+  <div class="chips" id="chips">
+    <span class="chip" id="chip-ollama"><i></i>Ollama</span>
+    <span class="chip" id="chip-gpu"><i></i>GPU</span>
+    <span class="chip" id="chip-stream"><i></i>Telemetry</span>
+    <span class="chip" id="chip-job"><i></i>Idle</span>
+  </div>
+</header>
+
+<main class="stage">
+
+  <!-- ── Teacher ──────────────────────────────────────────────────────── -->
+  <section class="panel teacher" id="teacher-panel">
+    <div class="panel-head">
+      <h2>Teacher</h2>
+      <span class="panel-note" id="teacher-note">select a pulled Ollama model</span>
+    </div>
+
+    <div class="panel-body">
+      <div class="field">
+        <label for="teacher-list">Available models</label>
+        <div class="model-list" id="teacher-list" role="radiogroup" aria-label="Teacher model"></div>
+        <p class="hint" id="teacher-hint"></p>
+      </div>
+
+      <div class="field">
+        <label for="skill">Skill to distil</label>
+        <textarea id="skill" rows="3" spellcheck="false">Explain Python error messages: state what the error means, the most likely cause, and the concrete fix, in a short paragraph followed by a corrected code snippet.</textarea>
+      </div>
+
+      <div class="field">
+        <label for="seeds">Seed prompts <span class="muted">(one per line)</span></label>
+        <textarea id="seeds" rows="6" spellcheck="false">What does "TypeError: unhashable type: 'list'" mean and how do I fix it?
+Explain "IndentationError: unexpected indent" and how to resolve it.
+Why do I get "ValueError: too many values to unpack (expected 2)" and what is the fix?
+What causes "AttributeError: 'NoneType' object has no attribute 'append'"?
+Explain "ModuleNotFoundError: No module named 'requests'" and how to fix it.
+Why does "RecursionError: maximum recursion depth exceeded" happen?</textarea>
+      </div>
+
+      <div class="grid-4">
+        <div class="field">
+          <label for="ds-name">Dataset name</label>
+          <input id="ds-name" type="text" value="distilled" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="ds-target">Target pairs</label>
+          <input id="ds-target" type="number" min="4" max="2000" step="4" value="60">
+        </div>
+        <div class="field">
+          <label for="ds-temp">Answer temp</label>
+          <input id="ds-temp" type="number" min="0" max="2" step="0.05" value="0.7">
+        </div>
+        <div class="field">
+          <label for="ds-conc">Parallel</label>
+          <input id="ds-conc" type="number" min="1" max="8" step="1" value="2">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="btn-build" class="primary teacher-accent">Build dataset</button>
+        <button id="btn-stop-build" class="ghost" disabled>Stop</button>
+        <span class="counter" id="build-counter"></span>
+      </div>
+
+      <div class="field grow">
+        <label>Teacher output <span class="muted" id="stream-label"></span></label>
+        <div class="streams" id="streams"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Channel ──────────────────────────────────────────────────────── -->
+  <section class="channel" id="channel">
+    <div class="canvas-wrap"><canvas id="channel-canvas"></canvas></div>
+    <div class="channel-meta">
+      <span id="channel-label">channel idle</span>
+      <span id="channel-count" class="mono"></span>
+    </div>
+  </section>
+
+  <!-- ── Student ──────────────────────────────────────────────────────── -->
+  <section class="panel student" id="student-panel">
+    <div class="panel-head">
+      <h2>Student</h2>
+      <span class="panel-note" id="student-note">not training</span>
+    </div>
+
+    <div class="panel-body split">
+      <div class="scroll">
+      <div class="field">
+        <label for="student-select">Base model</label>
+        <select id="student-select"></select>
+        <p class="hint" id="student-hint"></p>
+      </div>
+
+      <div class="grid-4">
+        <div class="field">
+          <label for="tr-dataset">Dataset</label>
+          <select id="tr-dataset"></select>
+        </div>
+        <div class="field">
+          <label for="tr-epochs">Epochs</label>
+          <input id="tr-epochs" type="number" min="0.5" max="20" step="0.5" value="3">
+        </div>
+        <div class="field">
+          <label for="tr-steps">Max steps <span class="muted">(0 = all)</span></label>
+          <input id="tr-steps" type="number" min="0" max="10000" step="5" value="0">
+        </div>
+        <div class="field">
+          <label for="tr-seq">Seq len</label>
+          <input id="tr-seq" type="number" min="128" max="4096" step="64" value="512">
+        </div>
+        <div class="field">
+          <label for="tr-rank">LoRA rank</label>
+          <input id="tr-rank" type="number" min="1" max="128" step="1" value="16">
+        </div>
+        <div class="field">
+          <label for="tr-alpha">LoRA alpha</label>
+          <input id="tr-alpha" type="number" min="1" max="256" step="1" value="32">
+        </div>
+        <div class="field">
+          <label for="tr-lr">Learning rate</label>
+          <input id="tr-lr" type="number" min="0.000001" max="0.01" step="0.00001" value="0.0002">
+        </div>
+        <div class="field">
+          <label for="tr-accum">Grad accum</label>
+          <input id="tr-accum" type="number" min="1" max="64" step="1" value="8">
+        </div>
+      </div>
+
+      <div class="toggles">
+        <label class="check"><input id="tr-4bit" type="checkbox" checked> 4-bit (QLoRA)</label>
+        <label class="check"><input id="tr-ckpt" type="checkbox" checked> Gradient checkpointing</label>
+      </div>
+
+      <div class="actions">
+        <button id="btn-train" class="primary student-accent">Start training</button>
+        <button id="btn-stop-train" class="ghost" disabled>Stop</button>
+        <span class="counter" id="estimate"></span>
+      </div>
+      </div><!-- /scroll -->
+
+      <div class="pinned">
+      <div class="graph-wrap">
+        <div class="canvas-wrap"><canvas id="student-canvas"></canvas></div>
+        <div class="graph-legend">
+          <span id="graph-label">layer graph — idle</span>
+          <span class="scale"><i class="s0"></i><i class="s1"></i><i class="s2"></i><i class="s3"></i> gradient norm</span>
+        </div>
+      </div>
+
+      <div class="readout" id="readout">
+        <div><span>step</span><b id="m-step">—</b></div>
+        <div><span>loss</span><b id="m-loss">—</b></div>
+        <div><span>eval</span><b id="m-eval">—</b></div>
+        <div><span>lr</span><b id="m-lr">—</b></div>
+        <div><span>grad norm</span><b id="m-gnorm">—</b></div>
+        <div><span>tok/s</span><b id="m-tps">—</b></div>
+        <div><span>vram</span><b id="m-vram">—</b></div>
+        <div><span>eta</span><b id="m-eta">—</b></div>
+      </div>
+
+      <div class="spark-wrap">
+        <canvas id="spark-canvas"></canvas>
+        <div class="spark-legend"><span id="spark-label">loss — no data yet</span></div>
+      </div>
+      </div><!-- /pinned -->
+    </div>
+  </section>
+</main>
+
+<!-- ── Drawer ───────────────────────────────────────────────────────────── -->
+<section class="drawer" id="drawer">
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="data" role="tab">Dataset</button>
+    <button class="tab" data-tab="runs" role="tab">Runs</button>
+    <button class="tab" data-tab="export" role="tab">Export</button>
+    <button class="tab" data-tab="log" role="tab">Log</button>
+    <span class="tab-spacer"></span>
+    <span class="tab-meta mono" id="drawer-meta"></span>
+    <button class="tab collapse" id="btn-collapse" title="Collapse">▾</button>
+  </div>
+
+  <div class="tab-panels" id="tab-panels">
+    <div class="tab-panel active" data-panel="data">
+      <div class="panel-toolbar">
+        <select id="data-select"></select>
+        <span class="mono" id="data-summary"></span>
+        <span class="tab-spacer"></span>
+        <button id="btn-prev" class="ghost small">Prev</button>
+        <span class="mono" id="data-range"></span>
+        <button id="btn-next" class="ghost small">Next</button>
+        <button id="btn-drop-dataset" class="ghost small danger">Delete dataset</button>
+      </div>
+      <div class="rows" id="rows"></div>
+    </div>
+
+    <div class="tab-panel" data-panel="runs">
+      <div class="rows" id="runs-list"></div>
+    </div>
+
+    <div class="tab-panel" data-panel="export">
+      <div class="panel-toolbar">
+        <select id="export-run"></select>
+        <input id="export-name" type="text" placeholder="export name" spellcheck="false">
+        <label class="check"><input id="export-merge" type="checkbox" checked> Merge into a full model</label>
+        <button id="btn-export" class="primary small">Export</button>
+      </div>
+      <div class="rows" id="export-list"></div>
+    </div>
+
+    <div class="tab-panel" data-panel="log">
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+</section>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
