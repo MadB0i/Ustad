@@ -66,6 +66,36 @@ Unlike traditional distillation that requires access to model internals, Ustad u
 - **VRAM Estimation** — Pre-flight checks before training
 - **CPU Fallback** — Full functionality without GPU
 - **Smart Resource Management** — Automatic Ollama teacher eviction
+- **Hardware Advisor** — Auto-detects GPU/CPU and recommends which models fit your device with fit badges (Recommended / Tight fit / Too large / CPU only)
+
+---
+
+## 🎯 Hardware Advisor
+
+Ustad automatically detects your GPU/CPU hardware and recommends which models you can train on your device — no manual guessing required.
+
+### How It Works
+
+1. **Auto-detection** — On startup, scans GPU name, VRAM, CPU threads, and architecture
+2. **VRAM estimation** — For each of 17 catalog models, estimates memory using a param-count heuristic (4-bit QLoRA weights, LoRA adapters, logit overhead, activations, CUDA context)
+3. **Fit classification** — Each model gets a badge:
+   - ✓ **Recommended** — Uses <60% VRAM, comfortable headroom
+   - ⚠ **Tight fit** — Uses <90% VRAM, works but tight
+   - ✗ **Too large** — Exceeds available VRAM, will OOM
+   - 🔄 **CPU only** — No GPU available or model too large
+4. **Best fit highlight** — The largest model that fits is highlighted as the best choice
+5. **Click to select** — Click any recommended model to instantly select it in the Student dropdown
+
+### Example Output
+
+| Your GPU | Best Fit | Why |
+|----------|----------|-----|
+| GTX 1650 (4GB) | Qwen3 0.6B (~2.68 GB) | Tight fit, largest that works |
+| RTX 3060 (12GB) | 1-2B models | Recommended range |
+| RTX 4090 (24GB) | 7B+ models | Plenty of headroom |
+| CPU only | GPT-Neo 125M | CPU fallback, smallest model |
+
+> **Tip:** The advisor uses no model downloads — it's pure math based on parameter counts and your hardware specs.
 
 ---
 
@@ -341,7 +371,7 @@ python scripts/smoke_test.py --all
 ```
 Ustad/
 ├── backend/
-│   ├── config.py           # Hardware detection, presets, VRAM estimator
+│   ├── config.py           # Hardware detection, presets, VRAM estimator, model advisor
 │   ├── events.py           # Thread-safe event bus with SSE replay
 │   ├── ollama_client.py    # Async Ollama API wrapper
 │   ├── dataset.py          # Self-instruct + teacher response generation
@@ -461,7 +491,7 @@ weight = label_tokens / total_tokens_in_window
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/system` | GET | Hardware info, presets, Ollama status |
+| `/api/system` | GET | Hardware info, presets, Ollama status, model recommendations |
 | `/api/teachers` | GET | List Ollama models with template detection |
 | `/api/teachers/unload` | POST | Evict resident teacher from GPU |
 | `/api/students/download` | POST | Download student model from HuggingFace |
