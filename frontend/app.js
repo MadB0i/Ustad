@@ -124,13 +124,82 @@ async function loadSystem() {
 
   const select = $('student-select');
   select.innerHTML = '';
+
+  // Group models by family for better organization
+  const modelFamilies = {
+    'Qwen': [],
+    'Llama': [],
+    'Gemma': [],
+    'Phi': [],
+    'Mistral': [],
+    'Code Models': [],
+    'Multilingual': [],
+    'Experimental': [],
+    'Other': []
+  };
+
+  // Categorize models
   for (const model of system.students) {
-    const option = document.createElement('option');
-    option.value = model.repo_id;
-    option.textContent = `${model.label} · ${model.params}${model.cached ? '' : ' · not downloaded'}`;
-    option.dataset.note = model.note;
-    option.dataset.cached = model.cached ? '1' : '';
-    select.appendChild(option);
+    if (model.repo_id.includes('Qwen')) {
+      modelFamilies['Qwen'].push(model);
+    } else if (model.repo_id.includes('Llama') || model.repo_id.includes('TinyLlama')) {
+      modelFamilies['Llama'].push(model);
+    } else if (model.repo_id.includes('gemma')) {
+      modelFamilies['Gemma'].push(model);
+    } else if (model.repo_id.includes('phi')) {
+      modelFamilies['Phi'].push(model);
+    } else if (model.repo_id.includes('Mistral') || model.repo_id.includes('mistral')) {
+      modelFamilies['Mistral'].push(model);
+    } else if (model.repo_id.includes('coder') || model.repo_id.includes('code') || model.repo_id.includes('star')) {
+      modelFamilies['Code Models'].push(model);
+    } else if (model.repo_id.includes('ru') || model.label.includes('ru')) {
+      modelFamilies['Multilingual'].push(model);
+    } else if (model.repo_id.includes('gpt-neo') || model.repo_id.includes('DialoGPT')) {
+      modelFamilies['Experimental'].push(model);
+    } else {
+      modelFamilies['Other'].push(model);
+    }
+  }
+
+  // Create grouped options with headers
+  for (const [family, models] of Object.entries(modelFamilies)) {
+    if (models.length === 0) continue;
+
+    // Add family header
+    const header = document.createElement('optgroup');
+    header.label = `${family} Family`;
+    select.appendChild(header);
+
+    // Sort models by parameter size (smallest first)
+    models.sort((a, b) => {
+      const aSize = parseInt(a.params) || 0;
+      const bSize = parseInt(b.params) || 0;
+      return aSize - bSize;
+    });
+
+    // Add models in this family
+    for (const model of models) {
+      const option = document.createElement('option');
+      option.value = model.repo_id;
+
+      // Enhanced display with size indicator and download status
+      const sizeIcon = getSizeIcon(model.params);
+      const downloadStatus = model.cached ? '✅' : '📥';
+      option.textContent = `${sizeIcon} ${model.label} (${model.params}) ${downloadStatus}`;
+
+      option.dataset.note = model.note;
+      option.dataset.cached = model.cached ? '1' : '';
+      header.appendChild(option);
+    }
+  }
+
+  function getSizeIcon(params) {
+    const size = parseInt(params) || 0;
+    if (size <= 200) return '🟢'; // Ultra small
+    if (size <= 600) return '🟡'; // Small
+    if (size <= 1500) return '🟠'; // Medium
+    if (size <= 3000) return '🔴'; // Large
+    return '⚫'; // Very large
   }
   select.value = system.default_student;
 

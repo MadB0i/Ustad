@@ -61,39 +61,127 @@ class StudentModel:
     note: str
 
 
-DEFAULT_STUDENT = "Qwen/Qwen3-0.6B"
+DEFAULT_STUDENT = "Qwen/Qwen2.5-0.5B-Instruct"
 
 STUDENT_CATALOG: tuple[StudentModel, ...] = (
-    StudentModel(
-        "Qwen/Qwen3-0.6B",
-        "Qwen3 0.6B",
-        "596M",
-        "Best quality-per-VRAM of the tiny models. Thinking mode is disabled when "
-        "building training targets.",
-    ),
+    # ===== QWEN FAMILY =====
     StudentModel(
         "Qwen/Qwen2.5-0.5B-Instruct",
         "Qwen2.5 0.5B Instruct",
         "494M",
-        "Smallest footprint and the simplest chat template.",
+        "Smallest, fastest, great for mobile deployment. Perfect starter model.",
+    ),
+    StudentModel(
+        "Qwen/Qwen3-0.6B",
+        "Qwen3 0.6B",
+        "596M",
+        "Best quality-per-VRAM ratio. Thinking mode auto-disabled for training.",
     ),
     StudentModel(
         "Qwen/Qwen2.5-1.5B-Instruct",
         "Qwen2.5 1.5B Instruct",
         "1.54B",
-        "Noticeably stronger student. Tight but workable in 4 GB at seq 512.",
+        "Balanced size and capability. Works well in 4GB at seq 512.",
     ),
     StudentModel(
         "Qwen/Qwen3-1.7B",
         "Qwen3 1.7B",
         "1.72B",
-        "Strongest student here. Needs ~3 GB during training; drop seq to 384 on 4 GB.",
+        "Strong reasoning, good for complex tasks. Needs ~3GB during training.",
+    ),
+
+    # ===== LLAMA FAMILY =====
+    StudentModel(
+        "microsoft/DialoGPT-small",
+        "DialoGPT Small",
+        "117M",
+        "Ultra-lightweight conversational model. Great for chatbots.",
     ),
     StudentModel(
         "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
         "TinyLlama 1.1B Chat",
         "1.10B",
-        "Small 32k vocab keeps logit memory low, but the weakest chat quality here.",
+        "Small vocab (32k), low memory usage. Good for resource-constrained use.",
+    ),
+    StudentModel(
+        "microsoft/DialoGPT-medium",
+        "DialoGPT Medium",
+        "345M",
+        "Mid-size conversational model with better context understanding.",
+    ),
+
+    # ===== GEMMA FAMILY =====
+    StudentModel(
+        "google/gemma-2b",
+        "Gemma 2B",
+        "2.51B",
+        "Google's small model. Strong instruction following, needs 6GB+ VRAM.",
+    ),
+
+    # ===== PHI FAMILY =====
+    StudentModel(
+        "microsoft/phi-2",
+        "Phi-2",
+        "2.78B",
+        "Microsoft's efficient model. Excellent coding capabilities.",
+    ),
+
+    # ===== LLAMA 3.2 =====
+    StudentModel(
+        "meta-llama/Llama-3.2-1B",
+        "Llama 3.2 1B",
+        "1.24B",
+        "Latest Meta model. Strong multilingual support.",
+    ),
+    StudentModel(
+        "meta-llama/Llama-3.2-3B",
+        "Llama 3.2 3B",
+        "3.21B",
+        "Powerful but needs 8GB+ VRAM. Excellent for complex reasoning.",
+    ),
+
+    # ===== MISTRAL FAMILY =====
+    StudentModel(
+        "mistralai/Mistral-7B-v0.1",
+        "Mistral 7B",
+        "7.24B",
+        "High-quality open model. Requires 12GB+ VRAM or CPU fallback.",
+    ),
+
+    # ===== SPECIALIZED MODELS =====
+    StudentModel(
+        "bigcode/starcoder2-3b",
+        "StarCoder2 3B",
+        "3.03B",
+        "Code-specialized model. Perfect for programming tasks.",
+    ),
+    StudentModel(
+        "salesforce/codegen-350M-mono",
+        "CodeGen 350M",
+        "350M",
+        "Lightweight code generation. Fast training, good for simple coding tasks.",
+    ),
+
+    # ===== MULTILINGUAL =====
+    StudentModel(
+        "ai-forever/rugpt3small_based_on_gpt2",
+        "ruGPT3 Small",
+        "125M",
+        "Russian-specialized model. Great for non-English fine-tuning.",
+    ),
+
+    # ===== EXPERIMENTAL =====
+    StudentModel(
+        "EleutherAI/gpt-neo-125M",
+        "GPT-Neo 125M",
+        "125M",
+        "Ultra-fast training. Good for experimentation and testing.",
+    ),
+    StudentModel(
+        "EleutherAI/gpt-neo-1.3B",
+        "GPT-Neo 1.3B",
+        "1.32B",
+        "Balanced EleutherAI model. Reliable and well-documented.",
     ),
 )
 

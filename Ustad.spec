@@ -1,65 +1,46 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""
-PyInstaller spec file for Ustad standalone executable.
+from PyInstaller.utils.hooks import collect_all
 
-Usage:
-    pyinstaller Ustad.spec
+datas = [('frontend', 'frontend'), ('backend', 'backend')]
+binaries = []
+hiddenimports = ['torch._C', 'torch.jit']
+tmp_ret = collect_all('torch')
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+tmp_ret = collect_all('transformers')
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+tmp_ret = collect_all('peft')
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+tmp_ret = collect_all('bitsandbytes')
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+tmp_ret = collect_all('accelerate')
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+tmp_ret = collect_all('uvicorn')
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+tmp_ret = collect_all('fastapi')
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+tmp_ret = collect_all('safetensors')
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
-The resulting executable will be in dist/Ustad.exe (Windows) or dist/Ustad (Linux/macOS).
-
-Note: The executable is large (~2-4GB) due to PyTorch/transformers dependencies.
-"""
-
-block_cipher = None
 
 a = Analysis(
-    ['backend/server.py'],
+    ['main.py'],
     pathex=[],
-    binaries=[],
-    datas=[
-        ('frontend', 'frontend'),
-        ('backend', 'backend'),
-    ],
-    hiddenimports=[
-        'uvicorn.logging',
-        'uvicorn.loops.auto',
-        'uvicorn.protocols.http.auto',
-        'uvicorn.protocols.http.h11_impl',
-        'uvicorn.protocols.websockets.auto',
-        'uvicorn.lifespan.on',
-        'transformers',
-        'peft',
-        'bitsandbytes',
-        'accelerate',
-        'safetensors',
-        'huggingface_hub',
-        'httpx',
-        'fastapi',
-    ],
+    binaries=binaries,
+    datas=datas,
+    hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[
-        'matplotlib',
-        'scipy',
-        'pandas',
-        'jupyter',
-        'IPython',
-        'notebook',
-    ],
-    win_no_prefer_redirects=False,
-    win_private_assemblies=False,
-    cipher=block_cipher,
+    excludes=[],
     noarchive=False,
+    optimize=0,
 )
-
-pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+pyz = PYZ(a.pure)
 
 exe = EXE(
     pyz,
     a.scripts,
     a.binaries,
-    a.zipfiles,
     a.datas,
     [],
     name='Ustad',
@@ -69,7 +50,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,  # Set to False for windowed app (no console)
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

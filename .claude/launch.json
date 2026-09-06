@@ -3,9 +3,11 @@
   "configurations": [
     {
       "name": "ustad",
-      "runtimeExecutable": ".venv/Scripts/python.exe",
+      "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "backend.server"],
-      "port": 8177
+      "port": 8177,
+      "autoPort": false,
+      "url": "http://localhost:8177"
     }
   ]
 }
