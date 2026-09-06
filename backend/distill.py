@@ -601,6 +601,8 @@ class TrainingRun:
             "stopped_early": stopped_early,
             "adapter_path": str(self.paths.adapter),
             "trainable_params": n_trainable,
+            "total_params": n_total,
+            "trainable_pct": round(100 * n_trainable / max(1, n_total), 4),
             "quantized": use_4bit,
             "device": str(device),
             "peak_vram": int(torch.cuda.max_memory_allocated()) if on_gpu else 0,
@@ -610,7 +612,10 @@ class TrainingRun:
             "config": self.tc.to_dict(),
         }
         self.paths.meta.write_text(json.dumps(result, indent=2), encoding="utf-8")
-        self._emit("train.done", **result)
+        # _emit already injects run_id via bus.publish; strip it to avoid a duplicate-keyword
+        # TypeError when the result dict is expanded.
+        emit_payload = {k: v for k, v in result.items() if k != "run_id"}
+        self._emit("train.done", **emit_payload)
         self.result = result
 
         del model

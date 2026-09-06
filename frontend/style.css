@@ -1,28 +1,35 @@
-/* Ustad — restrained desktop chrome, with the motion budget spent entirely on the
-   teacher → student data flow. Deliberately: hairline borders instead of shadows,
-   flat panels instead of cards, sentence-case labels, and no transitions anywhere
-   outside the two canvases. */
+/* Ustad — premium dark chrome.
+   Motion budget is spent entirely on the teacher → student data flow.
+   No transitions outside the two canvases and the intentional pulse/glow exceptions below. */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 
 :root {
-  --bg:            #15171f;
-  --panel:         #1b1e29;
-  --panel-2:       #21252f;
-  --panel-3:       #191c25;
-  --line:          #2c3040;
-  --line-strong:   #3c4256;
-  --text:          #e6e7ec;
-  --muted:         #9aa0b0;
-  --faint:         #6d7484;
+  --bg:            #0d0f17;
+  --panel:         #12151f;
+  --panel-2:       #181b27;
+  --panel-3:       #0f1119;
+  --line:          #222638;
+  --line-strong:   #323856;
+  --text:          #e8eaf2;
+  --muted:         #8890a8;
+  --faint:         #525870;
 
-  --teacher:       #e0a050;
-  --teacher-dim:   #7a5a2c;
-  --student:       #54c7c0;
-  --student-dim:   #2b6a67;
-  --danger:        #d97757;
+  --teacher:       #f0a840;
+  --teacher-dim:   #7a4e1a;
+  --teacher-glow:  rgba(240,168,64,0.12);
+  --student:       #4ecdc4;
+  --student-dim:   #1e5955;
+  --student-glow:  rgba(78,205,196,0.12);
+  --danger:        #e06050;
+  --accent-blue:   #5b8def;
+  --accent-purple: #8b6adf;
 
-  --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
-  --ui: -apple-system, "Segoe UI", Inter, Roboto, system-ui, sans-serif;
+  --mono: "Cascadia Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  --ui: "Inter", -apple-system, "Segoe UI", system-ui, sans-serif;
   --row: 26px;
+  --radius: 4px;
+  --radius-sm: 3px;
 }
 
 * { box-sizing: border-box; }
@@ -35,78 +42,118 @@ html, body {
 body {
   background: var(--bg);
   color: var(--text);
-  font: 13px/1.45 var(--ui);
+  font: 13px/1.5 var(--ui);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ── titlebar ───────────────────────────────────────────────────────────── */
 
 .titlebar {
   flex: 0 0 auto;
-  height: 38px;
+  height: 42px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
+  padding: 0 14px;
   background: var(--panel);
   border-bottom: 1px solid var(--line);
+  position: relative;
 }
 
-.brand { display: flex; align-items: baseline; gap: 8px; }
+/* Subtle gradient line at top edge */
+.titlebar::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--teacher-dim) 20%, var(--student-dim) 80%, transparent 100%);
+}
+
+.brand { display: flex; align-items: center; gap: 10px; }
 
 .brand .mark {
-  width: 9px; height: 9px;
-  align-self: center;
-  border: 1px solid var(--teacher);
-  border-right-color: var(--student);
-  border-bottom-color: var(--student);
-  transform: rotate(45deg);
+  width: 18px; height: 18px;
+  position: relative;
+  flex: 0 0 auto;
 }
 
-.brand .name { font-size: 14px; font-weight: 600; letter-spacing: 0; }
-.brand .sub { color: var(--faint); font-size: 11.5px; }
+/* Diamond mark — two overlapping rotated squares */
+.brand .mark::before,
+.brand .mark::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1.5px solid;
+  transform: rotate(45deg);
+}
+.brand .mark::before { border-color: var(--teacher); }
+.brand .mark::after  { border-color: var(--student); inset: 6px; }
 
-.chips { display: flex; gap: 6px; align-items: center; }
+.brand .name {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+
+.brand .sub {
+  color: var(--faint);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.chips { display: flex; gap: 5px; align-items: center; }
 
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   height: 22px;
-  padding: 0 8px;
+  padding: 0 9px;
   border: 1px solid var(--line);
   border-radius: 2px;
   background: var(--panel-3);
   color: var(--muted);
-  font-size: 11.5px;
+  font-size: 11px;
+  font-weight: 400;
   white-space: nowrap;
   max-width: 340px;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: 0.01em;
 }
 
 .chip i {
-  width: 6px; height: 6px;
+  width: 5px; height: 5px;
   flex: 0 0 auto;
   border-radius: 50%;
   background: var(--faint);
 }
 
-.chip.ok i     { background: var(--student); }
-.chip.warn i   { background: var(--teacher); }
-.chip.bad i    { background: var(--danger); }
-.chip.busy i   { background: var(--teacher); }
+.chip.ok   { border-color: var(--student-dim); }
+.chip.ok i { background: var(--student); box-shadow: 0 0 4px var(--student); }
 
-/* ── stage: teacher | channel | student ─────────────────────────────────── */
+.chip.warn   { border-color: var(--teacher-dim); }
+.chip.warn i { background: var(--teacher); box-shadow: 0 0 4px var(--teacher); }
+
+.chip.bad { border-color: #5c2820; }
+.chip.bad i { background: var(--danger); }
+
+.chip.busy   { border-color: var(--teacher-dim); }
+.chip.busy i { background: var(--teacher); animation: pulse 1.4s ease-in-out infinite; }
+
+/* ── stage ──────────────────────────────────────────────────────────────── */
 
 .stage {
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(320px, 1fr) 132px minmax(380px, 1.15fr);
+  grid-template-columns: minmax(320px, 1fr) 128px minmax(380px, 1.15fr);
 }
 
 .panel {
@@ -123,76 +170,87 @@ body {
 .panel-head {
   flex: 0 0 auto;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
-  padding: 9px 12px;
+  padding: 0 14px;
+  height: 36px;
   border-bottom: 1px solid var(--line);
+  background: var(--panel);
 }
 
 .panel-head h2 {
   margin: 0;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
+.panel.teacher .panel-head {
+  background: linear-gradient(180deg, rgba(240,168,64,0.04) 0%, transparent 100%);
+}
 .panel.teacher .panel-head h2 { color: var(--teacher); }
+
+.panel.student .panel-head {
+  background: linear-gradient(180deg, rgba(78,205,196,0.04) 0%, transparent 100%);
+}
 .panel.student .panel-head h2 { color: var(--student); }
 
 .panel-note {
   color: var(--faint);
-  font-size: 11.5px;
+  font-size: 11px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  font-weight: 400;
 }
 
 .panel-body {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 10px 12px 12px;
+  padding: 12px 14px 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 11px;
 }
 
-/* The student's live readout is the point of the whole app, so it is pinned to the bottom of
-   the panel and the hyperparameter form scrolls underneath it. Left as one scrolling column,
-   the loss curve fell ~180px below the fold at 1180x820 exactly when a run made it worth
-   watching. The graph absorbs the shrinking; the numbers and the curve never do. */
+/* Student split layout: form scrolls, live readout is pinned */
 .panel-body.split { overflow: hidden; padding: 0; gap: 0; }
 
 .panel-body.split > .scroll {
-  /* Yields all the space: shrinks (and scrolls) so the readout below never has to. */
   flex: 0 1 auto;
   min-height: 96px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 11px;
+  padding: 12px 14px;
 }
 
 .panel-body.split > .pinned {
-  /* Grows into spare height on a tall screen, never shrinks below its own content. */
   flex: 1 0 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 10px 12px 12px;
+  padding: 10px 14px 12px;
   border-top: 1px solid var(--line);
 }
 
 .panel-body.split > .pinned > .graph-wrap { flex: 1 1 auto; min-height: 140px; }
 
 /* ── form primitives ────────────────────────────────────────────────────── */
-.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+
+.field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .field.grow { flex: 1 1 auto; min-height: 120px; }
 
 label {
   color: var(--muted);
-  font-size: 11.5px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .muted { color: var(--faint); }
@@ -202,6 +260,7 @@ label {
   color: var(--faint);
   font-size: 11px;
   min-height: 14px;
+  font-weight: 400;
 }
 
 input[type=text], input[type=number], textarea, select {
@@ -209,67 +268,201 @@ input[type=text], input[type=number], textarea, select {
   background: var(--panel-2);
   color: var(--text);
   border: 1px solid var(--line);
-  border-radius: 2px;
-  padding: 4px 6px;
-  font: 12px/1.4 var(--ui);
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  font: 12.5px/1.4 var(--ui);
   outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-textarea { font: 12px/1.5 var(--mono); resize: vertical; }
-input:focus, textarea:focus, select:focus { border-color: var(--line-strong); }
+textarea { font: 12px/1.55 var(--mono); resize: vertical; }
 
-select { appearance: none; padding-right: 20px; }
+input:focus, textarea:focus, select:focus {
+  border-color: var(--student-dim);
+  box-shadow: 0 0 0 2px rgba(78,205,196,0.08);
+}
+
+select {
+  appearance: none;
+  padding-right: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9L12 15L18 9' stroke='%23525870' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 7px center;
+}
 
 .grid-4 {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: 9px;
 }
 
-.toggles { display: flex; gap: 14px; flex-wrap: wrap; }
+.toggles { display: flex; gap: 16px; flex-wrap: wrap; }
 
 .check {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   color: var(--muted);
-  font-size: 11.5px;
+  font-size: 12px;
   white-space: nowrap;
+  cursor: pointer;
 }
-
-.check input { accent-color: var(--student); margin: 0; }
+.check:hover { color: var(--text); }
+.check input { accent-color: var(--student); margin: 0; cursor: pointer; }
 
 .actions { display: flex; align-items: center; gap: 8px; }
 
 button {
-  font: 12px var(--ui);
-  border-radius: 2px;
-  padding: 5px 11px;
+  font: 12px/1 var(--ui);
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  padding: 6px 13px;
   border: 1px solid var(--line-strong);
   background: var(--panel-2);
-  color: var(--text);
+  color: var(--muted);
   cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
 }
 
-button.small { padding: 3px 8px; font-size: 11.5px; }
-button:hover:not(:disabled) { background: #272c38; }
-button:disabled { opacity: 0.42; cursor: default; }
+button.small { padding: 3px 9px; font-size: 11.5px; }
+button:hover:not(:disabled) { background: #1e2232; color: var(--text); border-color: var(--line-strong); }
+button:disabled { opacity: 0.35; cursor: default; }
 
-button.primary { font-weight: 600; }
-button.teacher-accent { border-color: var(--teacher-dim); color: var(--teacher); }
-button.teacher-accent:hover:not(:disabled) { background: #2a2216; }
-button.student-accent { border-color: var(--student-dim); color: var(--student); }
-button.student-accent:hover:not(:disabled) { background: #16282a; }
-button.ghost { color: var(--muted); }
-button.danger { color: var(--danger); border-color: #5c3a30; }
+button.primary {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+button.teacher-accent {
+  border-color: var(--teacher-dim);
+  color: var(--teacher);
+  background: rgba(240,168,64,0.06);
+}
+button.teacher-accent:hover:not(:disabled) {
+  background: rgba(240,168,64,0.12);
+  border-color: var(--teacher);
+}
+
+button.student-accent {
+  border-color: var(--student-dim);
+  color: var(--student);
+  background: rgba(78,205,196,0.06);
+}
+button.student-accent:hover:not(:disabled) {
+  background: rgba(78,205,196,0.12);
+  border-color: var(--student);
+}
+
+button.ghost { color: var(--faint); background: transparent; border-color: var(--line); }
+button.ghost:hover:not(:disabled) { color: var(--muted); background: var(--panel-2); }
+
+button.danger { color: var(--danger); border-color: #4a2520; }
+button.danger:hover:not(:disabled) { background: rgba(224,96,80,0.08); border-color: var(--danger); }
 
 .counter { color: var(--faint); font: 11.5px var(--mono); }
+
+/* ── model picker (catalog + custom path) ───────────────────────────────── */
+
+.model-picker {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--panel-3);
+}
+
+.picker-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--line);
+}
+
+.picker-tab {
+  flex: 1 1 auto;
+  height: 28px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--faint);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.picker-tab:last-child { border-right: 0; }
+.picker-tab:hover:not(:disabled) { background: var(--panel-2); color: var(--muted); }
+.picker-tab.active {
+  background: var(--panel-2);
+  color: var(--student);
+  border-bottom: 2px solid var(--student);
+  margin-bottom: -1px;
+}
+
+.picker-content { padding: 8px; }
+
+.picker-panel { display: none; flex-direction: column; gap: 6px; }
+.picker-panel.active { display: flex; }
+
+/* Catalog select fills the picker */
+.picker-panel[data-panel="catalog"] select {
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+}
+.picker-panel[data-panel="catalog"] select:focus {
+  border-color: var(--student-dim);
+}
+
+/* Custom path row */
+.custom-input-group {
+  display: flex;
+  gap: 0;
+}
+
+.custom-input-group input {
+  flex: 1 1 auto;
+  border-right: 0;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  font: 12px/1.4 var(--mono);
+}
+
+.browse-btn {
+  flex: 0 0 auto;
+  width: 34px;
+  padding: 0;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--faint);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+}
+.browse-btn:hover { background: #1e2232; color: var(--student); border-color: var(--student-dim); }
+
+/* Path probe result feedback */
+.path-suggestions {
+  font: 11.5px var(--mono);
+  color: var(--faint);
+  min-height: 0;
+}
+.path-probe { display: flex; flex-direction: column; gap: 3px; padding: 5px 6px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel-2); }
+.path-probe.valid { border-color: var(--student-dim); }
+.path-probe.invalid { border-color: #4a2520; }
+.path-probe .probe-row { display: flex; gap: 8px; }
+.path-probe .probe-key { color: var(--faint); min-width: 80px; }
+.path-probe .probe-val { color: var(--text); font-weight: 500; }
+.path-probe .probe-err { color: var(--danger); }
 
 /* ── teacher model list ─────────────────────────────────────────────────── */
 
 .model-list {
   border: 1px solid var(--line);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   background: var(--panel-3);
   max-height: 168px;
   overflow-y: auto;
@@ -277,51 +470,51 @@ button.danger { color: var(--danger); border-color: #5c3a30; }
 
 .model {
   display: grid;
-  /* The last track is reserved for the "generating" dot so a row does not reflow
-     when the teacher starts answering. */
-  grid-template-columns: 1fr auto auto 6px;
+  grid-template-columns: 1fr auto auto 8px;
   gap: 8px;
   align-items: center;
-  padding: 5px 8px;
+  padding: 6px 9px;
   border-bottom: 1px solid var(--line);
   cursor: pointer;
   font-size: 12px;
+  transition: background 0.1s;
 }
 
 .model:last-child { border-bottom: 0; }
-.model:hover { background: #1e222c; }
-.model.selected { background: #232733; }
+.model:hover { background: #161929; }
+.model.selected { background: #1a1d2b; }
 .model.selected .model-name { color: var(--teacher); }
-.model.unusable { color: var(--faint); cursor: not-allowed; }
+.model.unusable { color: var(--faint); cursor: not-allowed; opacity: 0.6; }
 .model.unusable:hover { background: transparent; }
 
 .model-name {
   font-family: var(--mono);
+  font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .model-meta { color: var(--faint); font: 11px var(--mono); white-space: nowrap; }
-
 .model-badges { display: inline-flex; gap: 4px; white-space: nowrap; }
 
 .badge {
   border: 1px solid var(--line-strong);
   border-radius: 2px;
   padding: 0 4px;
-  font-size: 10.5px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
   color: var(--muted);
   white-space: nowrap;
 }
 
-.badge.fit { border-color: var(--student-dim); color: var(--student); }
-.badge.spill { border-color: #5c3a30; color: var(--danger); }
+.badge.fit     { border-color: var(--student-dim); color: var(--student); }
+.badge.spill   { border-color: #5c3a30; color: var(--danger); }
 .badge.resident { border-color: var(--teacher-dim); color: var(--teacher); }
 
-/* The one exception to "no motion outside the canvases": this pulse marks a model
-   that is genuinely generating right now, driven by real dataset events. */
-.model.generating { background: #251f14; }
+/* Pulse: marks a model genuinely generating right now — driven by real events */
+.model.generating { background: #1d1810; }
 .model.generating .model-name { color: var(--teacher); }
 .model.generating::after {
   content: "";
@@ -329,12 +522,13 @@ button.danger { color: var(--danger); border-color: #5c3a30; }
   width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--teacher);
-  animation: pulse 1.15s ease-in-out infinite;
+  box-shadow: 0 0 6px var(--teacher);
+  animation: pulse 1.2s ease-in-out infinite;
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 0.25; transform: scale(0.8); }
-  50%      { opacity: 1;    transform: scale(1.25); }
+  0%, 100% { opacity: 0.25; transform: scale(0.7); }
+  50%      { opacity: 1;    transform: scale(1.3); }
 }
 
 /* ── teacher token streams ──────────────────────────────────────────────── */
@@ -351,17 +545,17 @@ button.danger { color: var(--danger); border-color: #5c3a30; }
 .stream {
   border: 1px solid var(--line);
   border-left: 2px solid var(--teacher-dim);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   background: var(--panel-3);
-  padding: 5px 7px;
-  min-height: 48px;
+  padding: 6px 8px;
+  min-height: 50px;
   max-height: 200px;
   overflow: hidden;
 }
 
-.stream.live { border-left-color: var(--teacher); }
-.stream .q { color: var(--teacher); font: 11.5px var(--mono); margin-bottom: 3px; }
-.stream .a { color: var(--muted); font: 11.5px/1.5 var(--mono); white-space: pre-wrap; word-break: break-word; }
+.stream.live { border-left-color: var(--teacher); box-shadow: -2px 0 8px rgba(240,168,64,0.15); }
+.stream .q { color: var(--teacher); font: 11px var(--mono); margin-bottom: 4px; opacity: 0.85; }
+.stream .a { color: var(--muted); font: 11.5px/1.55 var(--mono); white-space: pre-wrap; word-break: break-word; }
 .streams .empty { color: var(--faint); font-size: 11.5px; padding: 4px 0; }
 
 /* ── channel ────────────────────────────────────────────────────────────── */
@@ -372,11 +566,10 @@ button.danger { color: var(--danger); border-color: #5c3a30; }
   background: var(--panel-3);
   display: flex;
   flex-direction: column;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
 }
 
-/* Canvases are absolutely positioned inside a relative wrapper. Sizing them with
-   `height: 100%` as a flex item would overflow past the legend below, and letting layout
-   depend on the pixel buffer would feed the ResizeObserver back into itself. */
 .canvas-wrap {
   position: relative;
   flex: 1 1 auto;
@@ -413,12 +606,10 @@ button.danger { color: var(--danger); border-color: #5c3a30; }
   display: flex;
   flex-direction: column;
   border: 1px solid var(--line);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   background: var(--panel-3);
 }
 
-/* Floors, not sizes: the pinned graph shrinks to 140px on short screens, so the canvas area
-   must be allowed below its comfortable height rather than overflowing the legend. */
 .graph-wrap .canvas-wrap { min-height: 108px; }
 
 .graph-legend {
@@ -428,17 +619,17 @@ button.danger { color: var(--danger); border-color: #5c3a30; }
   align-items: center;
   gap: 8px;
   border-top: 1px solid var(--line);
-  padding: 4px 7px;
+  padding: 4px 8px;
   color: var(--faint);
   font-size: 10.5px;
 }
 
-.graph-legend .scale { display: inline-flex; align-items: center; gap: 3px; }
-.graph-legend .scale i { width: 12px; height: 6px; }
-.scale .s0 { background: #1d3a39; }
-.scale .s1 { background: #2b6a67; }
-.scale .s2 { background: #3d9c96; }
-.scale .s3 { background: var(--student); }
+.graph-legend .scale { display: inline-flex; align-items: center; gap: 4px; }
+.graph-legend .scale i { width: 12px; height: 5px; border-radius: 2px; }
+.scale .s0 { background: #1a3b3a; }
+.scale .s1 { background: #1e5955; }
+.scale .s2 { background: #2d9b93; }
+.scale .s3 { background: var(--student); box-shadow: 0 0 4px var(--student); }
 
 /* ── numeric readout ────────────────────────────────────────────────────── */
 
@@ -446,24 +637,34 @@ button.danger { color: var(--danger); border-color: #5c3a30; }
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   border: 1px solid var(--line);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   background: var(--panel-3);
+  overflow: hidden;
 }
 
 .readout > div {
-  padding: 4px 7px;
+  padding: 5px 8px;
   border-right: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
   min-width: 0;
 }
 
-.readout > div:nth-child(4n) { border-right: 0; }
+.readout > div:nth-child(4n)   { border-right: 0; }
 .readout > div:nth-last-child(-n+4) { border-bottom: 0; }
-.readout span { display: block; color: var(--faint); font-size: 10.5px; }
+
+.readout span {
+  display: block;
+  color: var(--faint);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
 .readout b {
   display: block;
-  font: 12.5px var(--mono);
-  font-weight: 500;
+  font: 500 13px var(--mono);
   color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -475,15 +676,16 @@ button.danger { color: var(--danger); border-color: #5c3a30; }
 .spark-wrap {
   flex: 0 0 auto;
   border: 1px solid var(--line);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   background: var(--panel-3);
+  overflow: hidden;
 }
 
 #spark-canvas { width: 100%; height: 84px; display: block; }
 
 .spark-legend {
   border-top: 1px solid var(--line);
-  padding: 4px 7px;
+  padding: 4px 8px;
   color: var(--faint);
   font: 10.5px var(--mono);
 }
@@ -507,8 +709,9 @@ button.danger { color: var(--danger); border-color: #5c3a30; }
   flex: 0 0 auto;
   display: flex;
   align-items: stretch;
-  height: 28px;
+  height: 29px;
   border-bottom: 1px solid var(--line);
+  background: var(--panel);
 }
 
 .tab {
@@ -516,17 +719,20 @@ button.danger { color: var(--danger); border-color: #5c3a30; }
   border-right: 1px solid var(--line);
   border-radius: 0;
   background: transparent;
-  color: var(--muted);
-  padding: 0 12px;
-  font-size: 12px;
+  color: var(--faint);
+  padding: 0 14px;
+  font-size: 11.5px;
+  font-weight: 500;
   height: 100%;
+  letter-spacing: 0.01em;
+  transition: color 0.1s, background 0.1s;
 }
 
-.tab:hover:not(:disabled) { background: #1e222c; }
-.tab.active { color: var(--text); background: var(--panel-2); }
+.tab:hover:not(:disabled) { background: var(--panel-2); color: var(--muted); }
+.tab.active { color: var(--text); background: var(--panel-2); border-bottom: 2px solid var(--student); }
 .tab-spacer { flex: 1 1 auto; }
-.tab-meta { color: var(--faint); align-self: center; padding: 0 10px; font-size: 11px; }
-.tab.collapse { border-right: 0; border-left: 1px solid var(--line); }
+.tab-meta { color: var(--faint); align-self: center; padding: 0 10px; font-size: 11px; font-family: var(--mono); }
+.tab.collapse { border-right: 0; border-left: 1px solid var(--line); color: var(--faint); }
 
 .tab-panels { flex: 1 1 auto; min-height: 0; }
 .tab-panel { display: none; height: 100%; flex-direction: column; min-height: 0; }
@@ -537,7 +743,7 @@ button.danger { color: var(--danger); border-color: #5c3a30; }
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
+  padding: 5px 11px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -549,15 +755,16 @@ button.danger { color: var(--danger); border-color: #5c3a30; }
 
 .row {
   display: grid;
-  grid-template-columns: 26px 1fr 1.35fr auto;
+  grid-template-columns: 28px 1fr 1.35fr auto;
   gap: 10px;
-  padding: 6px 10px;
+  padding: 6px 11px;
   border-bottom: 1px solid var(--line);
   font-size: 12px;
   align-items: start;
+  transition: background 0.08s;
 }
 
-.row:hover { background: #1e222c; }
+.row:hover { background: #14172294; }
 .row .idx { color: var(--faint); font: 11px var(--mono); padding-top: 1px; }
 .row .q { color: var(--text); }
 .row .a { color: var(--muted); }
@@ -578,16 +785,16 @@ button.danger { color: var(--danger); border-color: #5c3a30; }
   margin: 4px 0 0;
   font: 11px var(--mono);
   color: var(--student);
-  background: var(--panel-3);
+  background: var(--bg);
   border: 1px solid var(--line);
-  border-radius: 2px;
-  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  padding: 5px 7px;
   white-space: pre-wrap;
   word-break: break-all;
   user-select: all;
 }
 
-.empty-state { color: var(--faint); font-size: 12px; padding: 14px 10px; }
+.empty-state { color: var(--faint); font-size: 12px; padding: 14px 11px; }
 
 /* ── log ────────────────────────────────────────────────────────────────── */
 
@@ -595,28 +802,33 @@ button.danger { color: var(--danger); border-color: #5c3a30; }
   flex: 1 1 auto;
   overflow-y: auto;
   min-height: 0;
-  padding: 6px 10px;
-  font: 11.5px/1.55 var(--mono);
+  padding: 6px 11px;
+  font: 11.5px/1.6 var(--mono);
 }
 
 .log div { display: flex; gap: 8px; }
-.log .t { color: var(--faint); flex: 0 0 auto; }
-.log .k { color: var(--muted); flex: 0 0 132px; }
-.log .m { color: var(--text); min-width: 0; word-break: break-word; }
-.log .lv-error .m { color: var(--danger); }
+.log .t  { color: var(--faint); flex: 0 0 auto; }
+.log .k  { color: var(--muted); flex: 0 0 132px; }
+.log .m  { color: var(--text); min-width: 0; word-break: break-word; }
+.log .lv-error .m   { color: var(--danger); }
 .log .lv-teacher .k { color: var(--teacher); }
 .log .lv-student .k { color: var(--student); }
 
-/* ── scrollbars: thin, no thumb decoration ──────────────────────────────── */
+/* ── scrollbars ─────────────────────────────────────────────────────────── */
 
-::-webkit-scrollbar { width: 9px; height: 9px; }
-::-webkit-scrollbar-track { background: var(--panel-3); }
-::-webkit-scrollbar-thumb { background: #333846; border: 2px solid var(--panel-3); border-radius: 5px; }
-::-webkit-scrollbar-thumb:hover { background: #414759; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #252b3a; border: 2px solid transparent; border-radius: 6px; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: #313a52; background-clip: content-box; }
+
+/* ── reduced motion ─────────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
   .model.generating::after { animation: none; opacity: 1; }
+  .chip.busy i { animation: none; }
 }
+
+/* ── responsive ─────────────────────────────────────────────────────────── */
 
 @media (max-width: 1100px) {
   .stage { grid-template-columns: minmax(280px, 1fr) 96px minmax(320px, 1fr); }

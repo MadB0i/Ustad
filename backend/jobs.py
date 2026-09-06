@@ -112,7 +112,7 @@ class JobManager:
             self._release(job, "cancelled")
             raise
         except Exception as exc:
-            bus.publish("job.error", id=job.id, kind=job.kind, error=str(exc)[:600])
+            bus.publish("job.error", id=job.id, job_kind=job.kind, error=str(exc)[:600])
             self._release(job, "error", error=str(exc)[:600])
             traceback.print_exc()
             return None
@@ -188,7 +188,7 @@ class JobManager:
             return False
         if self._run is not None:
             self._run.stop()
-            bus.publish("job.stopping", id=job.id, kind=job.kind)
+            bus.publish("job.stopping", id=job.id, job_kind=job.kind)
             return True
         if self._task is not None:
             self._task.cancel()

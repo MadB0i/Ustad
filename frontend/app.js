@@ -1032,10 +1032,22 @@ async function buildDataset() {
   }
 }
 
+/* Returns whichever student model ID is currently selected (catalog or custom path). */
+function activeStudentId() {
+  const customPanel = document.querySelector('.picker-panel[data-panel="custom"]');
+  if (customPanel && customPanel.classList.contains('active')) {
+    const val = ($('custom-path').value || '').trim();
+    return val || null;
+  }
+  return $('student-select').value || null;
+}
+
 async function startTraining() {
+  const student = activeStudentId();
+  if (!student) { log('error', 'Select a student model first.'); return; }
   const body = {
     dataset: $('tr-dataset').value,
-    student: $('student-select').value,
+    student,
     epochs: Number($('tr-epochs').value),
     max_steps: Number($('tr-steps').value),
     max_seq_len: Number($('tr-seq').value),
@@ -1097,8 +1109,10 @@ function scheduleEstimate() {
 }
 
 async function refreshEstimate() {
+  const student = activeStudentId();
+  if (!student) return;
   const body = {
-    student: $('student-select').value,
+    student,
     max_seq_len: Number($('tr-seq').value),
     lora_r: Number($('tr-rank').value),
     load_in_4bit: $('tr-4bit').checked,
@@ -1127,6 +1141,55 @@ async function refreshEstimate() {
   }
 }
 
+/* ─── model picker (catalog ↔ custom path) ──────────────────────────────── */
+
+let probeTimer = null;
+
+function switchPickerMode(mode) {
+  document.querySelectorAll('.picker-tab').forEach((t) => t.classList.toggle('active', t.dataset.mode === mode));
+  document.querySelectorAll('.picker-panel').forEach((p) => p.classList.toggle('active', p.dataset.panel === mode));
+  // Clear probe display and re-run estimate when switching
+  $('path-suggestions').innerHTML = '';
+  $('student-hint').textContent = '';
+  scheduleEstimate();
+}
+
+async function probeCustomPath() {
+  const path = ($('custom-path').value || '').trim();
+  const box = $('path-suggestions');
+  if (!path) { box.innerHTML = ''; $('student-hint').textContent = ''; return; }
+
+  box.innerHTML = '<div class="path-probe"><span class="probe-err">probing…</span></div>';
+  try {
+    const result = await api('/api/students/browse', { method: 'POST', body: JSON.stringify({ path }) });
+    if (result.valid) {
+      const params = result.num_hidden_layers
+        ? `${result.num_hidden_layers}L · ${result.hidden_size}h · vocab ${result.vocab_size?.toLocaleString()}`
+        : '';
+      box.innerHTML = `
+        <div class="path-probe valid">
+          <div class="probe-row"><span class="probe-key">type</span><span class="probe-val">${result.model_type || '?'}</span></div>
+          ${params ? `<div class="probe-row"><span class="probe-key">geometry</span><span class="probe-val">${params}</span></div>` : ''}
+          <div class="probe-row"><span class="probe-key">source</span><span class="probe-val">${result.local ? 'local folder' : 'HF hub'}</span></div>
+        </div>`;
+      $('student-hint').textContent = result.local
+        ? 'Local model — loaded directly from disk.'
+        : 'Hugging Face repo — will be downloaded on first training run.';
+      scheduleEstimate();
+    } else {
+      box.innerHTML = `<div class="path-probe invalid"><span class="probe-err">${result.error || 'Not a valid model directory'}</span></div>`;
+      $('student-hint').textContent = '';
+    }
+  } catch (err) {
+    box.innerHTML = `<div class="path-probe invalid"><span class="probe-err">${err.message}</span></div>`;
+  }
+}
+
+function scheduleProbe() {
+  clearTimeout(probeTimer);
+  probeTimer = setTimeout(probeCustomPath, 500);
+}
+
 /* ─── tabs ──────────────────────────────────────────────────────────────── */
 
 function switchTab(name) {
@@ -1146,6 +1209,58 @@ function wire() {
 
   $('student-select').addEventListener('change', onStudentChange);
   ['tr-seq', 'tr-rank', 'tr-4bit', 'tr-ckpt'].forEach((id) => $(id).addEventListener('change', scheduleEstimate));
+
+  // Model picker: catalog ↔ custom path tabs
+  document.querySelectorAll('.picker-tab').forEach((tab) => {
+    tab.addEventListener('click', () => switchPickerMode(tab.dataset.mode));
+  });
+
+  // Custom path: type to probe, browse button opens native folder picker
+  $('custom-path').addEventListener('input', scheduleProbe);
+  $('custom-path').addEventListener('paste', () => setTimeout(scheduleProbe, 0));
+
+  // Drag-and-drop a folder onto the custom-path input
+  const customInput = $('custom-path');
+  customInput.addEventListener('dragover', (e) => { e.preventDefault(); customInput.style.borderColor = 'var(--student)'; });
+  customInput.addEventListener('dragleave', () => { customInput.style.borderColor = ''; });
+  customInput.addEventListener('drop', (e) => {
+    e.preventDefault();
+    customInput.style.borderColor = '';
+    // dataTransfer.files[0] gives a File — use its path (Electron/Tauri) or webkitRelativePath
+    const f = e.dataTransfer.files[0];
+    if (f) {
+      // Chrome on desktop: path is in the non-standard .path property (via remote-path header)
+      const p = f.path || (f.webkitRelativePath ? f.webkitRelativePath.split('/')[0] : f.name);
+      customInput.value = p;
+      switchPickerMode('custom');
+      scheduleProbe();
+    }
+  });
+
+  // Browse button: HTML5 directory picker (supported in Chrome/Edge/Brave)
+  $('browse-btn').addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.setAttribute('webkitdirectory', '');
+    input.style.display = 'none';
+    document.body.appendChild(input);
+    input.addEventListener('change', () => {
+      const first = input.files[0];
+      if (first) {
+        // Grab the top-level folder name from webkitRelativePath
+        const folderName = first.webkitRelativePath.split('/')[0];
+        // Try to get a usable absolute path from the first file's full path if available
+        const absPath = first.path
+          ? first.path.substring(0, first.path.lastIndexOf(folderName) + folderName.length)
+          : folderName;
+        customInput.value = absPath;
+        switchPickerMode('custom');
+        scheduleProbe();
+      }
+      document.body.removeChild(input);
+    });
+    input.click();
+  });
 
   $('data-select').addEventListener('change', (e) => loadPage(e.target.value, 0));
   $('btn-prev').addEventListener('click', () => loadPage(state.page.name, Math.max(0, state.page.offset - state.page.limit)));

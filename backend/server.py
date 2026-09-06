@@ -305,6 +305,41 @@ def _snapshot(repo_id: str) -> str:
     )
 
 
+@app.post("/api/students/browse")
+async def browse_model_path(request: dict[str, Any]) -> dict[str, Any]:
+    """Probe a local directory or HF repo ID as a student model.
+    Returns model metadata if it's a valid causal-LM, an error string otherwise."""
+    path_or_id = (request.get("path") or "").strip()
+    if not path_or_id:
+        raise HTTPException(400, "path is required")
+
+    def _probe() -> dict[str, Any]:
+        from transformers import AutoConfig
+        target = Path(path_or_id)
+        local = target.exists() and target.is_dir()
+        try:
+            cfg = AutoConfig.from_pretrained(
+                str(target) if local else path_or_id,
+                local_files_only=local,
+                trust_remote_code=False,
+            ).to_dict()
+        except Exception as exc:
+            return {"valid": False, "error": str(exc)[:300]}
+        arch = cfg.get("architectures", [])
+        return {
+            "valid": True,
+            "path": str(target.resolve()) if local else path_or_id,
+            "local": local,
+            "hidden_size": cfg.get("hidden_size"),
+            "num_hidden_layers": cfg.get("num_hidden_layers"),
+            "vocab_size": cfg.get("vocab_size"),
+            "architectures": arch,
+            "model_type": cfg.get("model_type", ""),
+        }
+
+    return await asyncio.to_thread(_probe)
+
+
 # --------------------------------------------------------------------------------------
 # Datasets
 # --------------------------------------------------------------------------------------
