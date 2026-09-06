@@ -173,6 +173,7 @@ async def system() -> dict[str, Any]:
         "default_student": config.DEFAULT_STUDENT,
         "recommended_teachers": list(config.RECOMMENDED_TEACHERS),
         "target_modules": list(config.DEFAULT_TARGET_MODULES),
+        "recommendations": config.recommend_models(hardware, tier),
         "jobs": jobs.snapshot(),
         "uptime": round(time.time() - STARTED_AT, 1),
     }

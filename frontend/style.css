@@ -458,6 +458,68 @@ button.danger:hover:not(:disabled) { background: rgba(224,96,80,0.08); border-co
 .path-probe .probe-val { color: var(--text); font-weight: 500; }
 .path-probe .probe-err { color: var(--danger); }
 
+/* ── hardware advisor ──────────────────────────────────────────────────── */
+
+.hw-advisor {
+  margin: 8px 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel-3);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.hw-summary {
+  padding: 6px 10px;
+  font: 11.5px var(--mono);
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+  background: var(--panel-2);
+  position: sticky;
+  top: 0;
+}
+
+.hw-gpu { color: var(--student); font-weight: 500; }
+
+.hw-models { display: flex; flex-direction: column; }
+
+.hw-model {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 5px 10px;
+  font: 11.5px var(--mono);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.1s;
+  border-bottom: 1px solid var(--panel-2);
+}
+.hw-model:last-child { border-bottom: 0; }
+.hw-model:hover { background: var(--panel-2); }
+
+.hw-model.best-fit {
+  background: rgba(84, 199, 192, 0.06);
+  border-left: 2px solid var(--student);
+}
+.hw-model.best-fit .hw-model-name { color: var(--student); font-weight: 600; }
+
+.hw-model-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hw-model-params { color: var(--muted); font-size: 11px; }
+.hw-model-est { color: var(--faint); font-size: 11px; }
+
+.fit-badge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.fit-good { background: rgba(84, 199, 192, 0.12); color: var(--student); }
+.fit-tight { background: rgba(224, 160, 80, 0.12); color: var(--teacher); }
+.fit-bad { background: rgba(160, 80, 80, 0.12); color: var(--danger); }
+.fit-cpu { background: rgba(120, 120, 140, 0.12); color: var(--muted); }
+
 /* ── teacher model list ─────────────────────────────────────────────────── */
 
 .model-list {

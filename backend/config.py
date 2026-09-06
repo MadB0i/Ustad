@@ -511,3 +511,146 @@ def estimate_peak_vram(model_config: dict[str, Any], tc: TrainConfig) -> dict[st
         "total": total,
         "lora_trainable_params": int(lora_params),
     }
+
+
+# --------------------------------------------------------------------------------------
+# Hardware-aware model recommendations
+# --------------------------------------------------------------------------------------
+
+
+def _parse_params(raw: str) -> int:
+    """Turn '494M' / '7.24B' into an integer parameter count."""
+    raw = raw.strip().upper()
+    if raw.endswith("B"):
+        return int(float(raw[:-1]) * 1_000_000_000)
+    if raw.endswith("M"):
+        return int(float(raw[:-1]) * 1_000_000)
+    return int(float(raw))
+
+
+def recommend_models(hw: dict[str, Any], tier: str) -> list[dict[str, Any]]:
+    """Estimate which student models fit this machine.
+
+    Uses a param-count-based heuristic — no model downloads needed.
+    Returns a list sorted by estimated VRAM (smallest first), each with:
+      repo_id, label, params (str), estimated_bytes, fit, best_fit
+    """
+    tc = preset_for(tier)
+    vram_total = int(hw.get("vram_total_bytes", 0))
+    has_gpu = bool(hw.get("cuda_available")) and hw.get("arch_supported") is not False
+
+    # Rough vocab estimate per model family (dominates logit cost).
+    # Qwen models have 152k vocab; most others ~32k–50k.
+    def _guess_vocab(repo_id: str) -> int:
+        if "Qwen" in repo_id:
+            return 152_000
+        if "gemma" in repo_id:
+            return 256_000
+        if "Llama" in repo_id:
+            return 128_000
+        if "Mistral" in repo_id:
+            return 32_000
+        return 50_000
+
+    # Rough hidden_size estimate from param count (empirical fit).
+    def _guess_hidden(n_params: int) -> int:
+        if n_params < 200_000_000:
+            return 640
+        if n_params < 600_000_000:
+            return 896
+        if n_params < 1_500_000_000:
+            return 1_536
+        if n_params < 3_000_000_000:
+            return 2_048
+        if n_params < 5_000_000_000:
+            return 3_072
+        return 4_096
+
+    # Rough layer count estimate.
+    def _guess_layers(n_params: int) -> int:
+        if n_params < 200_000_000:
+            return 12
+        if n_params < 600_000_000:
+            return 24
+        if n_params < 1_500_000_000:
+            return 28
+        if n_params < 3_000_000_000:
+            return 28
+        if n_params < 5_000_000_000:
+            return 32
+        return 32
+
+    tokens = tc.batch_size * tc.max_seq_len
+    use_4bit = tc.load_in_4bit and has_gpu
+    checkpointing = tc.gradient_checkpointing and has_gpu
+
+    results: list[dict[str, Any]] = []
+    best_fit_id: str | None = None
+
+    for model in STUDENT_CATALOG:
+        n_params = _parse_params(model.params)
+        hidden = _guess_hidden(n_params)
+        layers = _guess_layers(n_params)
+        vocab = _guess_vocab(model.repo_id)
+
+        # --- weight bytes ---
+        if use_4bit:
+            # NF4: ~0.55 bytes/param for linear layers, embeddings stay fp16.
+            embed_params = n_params * 0.25  # ~25% of params are embeddings
+            linear_params = n_params - embed_params
+            weight_bytes = int(embed_params * 2 + linear_params * 0.55)
+        else:
+            weight_bytes = int(n_params * 2)  # fp16
+
+        # --- LoRA + optimizer ---
+        # LoRA targets ~12% of params (q/k/v/o/gate/up/down projections).
+        lora_params = n_params * 0.12
+        lora_bytes = int(lora_params * 16)  # fp32 weight + grad + 2 Adam moments
+
+        # --- logits + cross-entropy ---
+        logit_bytes = int(tokens * vocab * 8)  # fp16 logits + fp32 CE + grad
+
+        # --- activations ---
+        if checkpointing:
+            act_bytes = int(layers * tokens * hidden * 2 + tokens * hidden * 48)
+        else:
+            act_bytes = int(layers * tokens * hidden * 40)
+
+        # --- CUDA context ---
+        cuda_ctx = _CUDA_CONTEXT_BYTES if has_gpu else 0
+
+        total = weight_bytes + lora_bytes + logit_bytes + act_bytes + cuda_ctx
+
+        # --- classify ---
+        if not has_gpu:
+            fit = "cpu_only"
+        elif vram_total == 0:
+            fit = "fits_tight"  # can't measure, assume it might work
+        else:
+            ratio = total / vram_total
+            if ratio < 0.60:
+                fit = "recommended"
+            elif ratio < 0.90:
+                fit = "fits_tight"
+            else:
+                fit = "too_large"
+
+        results.append({
+            "repo_id": model.repo_id,
+            "label": model.label,
+            "params": model.params,
+            "estimated_bytes": total,
+            "fit": fit,
+            "best_fit": False,
+        })
+
+    # Mark the largest "recommended" or "fits_tight" model as best_fit.
+    candidates = [r for r in results if r["fit"] in ("recommended", "fits_tight")]
+    if candidates:
+        best = max(candidates, key=lambda r: r["estimated_bytes"])
+        best["best_fit"] = True
+
+    # Sort by estimated VRAM, smallest first.
+    results.sort(key=lambda r: r["estimated_bytes"])
+
+    return results

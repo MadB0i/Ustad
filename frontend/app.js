@@ -216,7 +216,72 @@ async function loadSystem() {
   applyJobState(system.jobs);
   onStudentChange();
 
+  // Render hardware advisor — which models fit this machine.
+  renderHwAdvisor(system);
+
   for (const note of hw.notes || []) log('system', note);
+}
+
+function renderHwAdvisor(system) {
+  const el = $('hw-advisor');
+  if (!el || !system.recommendations || !system.recommendations.length) {
+    if (el) el.innerHTML = '';
+    return;
+  }
+
+  const hw = system.hardware;
+  const tier = system.tier;
+  const vramGiB = (hw.vram_total_bytes / (1024 ** 3)).toFixed(1);
+  const device = hw.device_name || 'CPU only';
+
+  // Hardware summary
+  let html = `<div class="hw-summary">`;
+  if (hw.cuda_available && hw.arch_supported !== false) {
+    html += `<span class="hw-gpu">🎯 ${device} · ${vramGiB} GB · ${tier}</span>`;
+  } else {
+    html += `<span class="hw-gpu">💻 ${hw.cpu_threads} threads · CPU mode</span>`;
+  }
+  html += `</div>`;
+
+  // Model recommendations
+  html += `<div class="hw-models">`;
+  for (const rec of system.recommendations) {
+    const estGiB = (rec.estimated_bytes / (1024 ** 3)).toFixed(2);
+    const fitClass = rec.fit === 'recommended' ? 'fit-good'
+      : rec.fit === 'fits_tight' ? 'fit-tight'
+      : rec.fit === 'too_large' ? 'fit-bad'
+      : 'fit-cpu';
+    const fitLabel = rec.fit === 'recommended' ? '✓ Recommended'
+      : rec.fit === 'fits_tight' ? '⚠ Tight fit'
+      : rec.fit === 'too_large' ? '✗ Too large'
+      : '🔄 CPU only';
+    const bestClass = rec.best_fit ? ' best-fit' : '';
+
+    html += `<div class="hw-model${bestClass}" data-repo="${rec.repo_id}" title="Click to select this model">`;
+    html += `<span class="hw-model-name">${rec.label}</span>`;
+    html += `<span class="hw-model-params">${rec.params}</span>`;
+    html += `<span class="hw-model-est">~${estGiB} GB</span>`;
+    html += `<span class="fit-badge ${fitClass}">${fitLabel}</span>`;
+    html += `</div>`;
+  }
+  html += `</div>`;
+
+  el.innerHTML = html;
+
+  // Click handler — select model in dropdown
+  el.querySelectorAll('.hw-model').forEach(row => {
+    row.addEventListener('click', () => {
+      const repoId = row.dataset.repo;
+      const select = $('student-select');
+      if (select) {
+        // Switch to catalog tab first
+        const catalogTab = document.querySelector('.picker-tab[data-mode="catalog"]');
+        if (catalogTab) catalogTab.click();
+        select.value = repoId;
+        select.dispatchEvent(new Event('change'));
+      }
+    });
+  });
 }
 
 async function loadTeachers() {
