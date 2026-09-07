@@ -98,6 +98,5 @@ coverage.xml
 .dmypy.json
 dmypy.json
 
-# Plans (optional - include if you want to track them)
-# *.md in root except README.md
-/mighty-swimming-blanket.md
+# Claude Code local settings
+.claude/

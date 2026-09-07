@@ -11,7 +11,7 @@
 ![GPU](https://img.shields.io/badge/GPU-Optional-green.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-**[Features](#features) • [Quick Start](#quick-start) • [Screenshots](#screenshots) • [Installation](#installation) • [Documentation](#documentation)**
+**[Features](#features) • [Quick Start](#quick-start) • [Usage Guide](#-usage-guide) • [Architecture](#-architecture) • [API Reference](#-api-reference)**
 
 </div>
 
@@ -96,27 +96,6 @@ Ustad automatically detects your GPU/CPU hardware and recommends which models yo
 | CPU only | GPT-Neo 125M | CPU fallback, smallest model |
 
 > **Tip:** The advisor uses no model downloads — it's pure math based on parameter counts and your hardware specs.
-
----
-
-## 🎬 Screenshots
-
-### Premium Interface
-![Ustad Interface](screenshots/interface.png)
-
-**Features visible:**
-- 🌟 **Futuristic dark theme** with glass morphism effects
-- 📁 **Tabbed model picker** (Catalog + Custom Path modes)
-- 🎯 **Drag-and-drop** support for any model files
-- 📊 **Live visualization** area (center panel)
-
-### Custom Model Support
-![Custom Model Picker](screenshots/custom-picker.png)
-
-**Upload any model:**
-- 📂 **Browse folders** for local models
-- 🌐 **Enter HuggingFace repo IDs**
-- ✅ **Real-time validation** with visual feedback
 
 ---
 
@@ -543,14 +522,7 @@ cd Ustad
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-pip install -r requirements-dev.txt  # linting, testing
 ```
-
-**Code Style:**
-- Black for formatting
-- Ruff for linting
-- Type hints required for public functions
-- Docstrings for non-obvious logic
 
 ---
 
