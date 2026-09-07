@@ -11,7 +11,7 @@
 ![GPU](https://img.shields.io/badge/GPU-Optional-green.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-**[Features](#features) • [Quick Start](#quick-start) • [Usage Guide](#-usage-guide) • [Architecture](#-architecture) • [API Reference](#-api-reference)**
+**[Features](#-features) • [Screenshots](#-screenshots) • [Quick Start](#-quick-start) • [Usage Guide](#-usage-guide) • [Architecture](#-architecture) • [API Reference](#-api-reference)**
 
 </div>
 
@@ -39,6 +39,18 @@ Unlike traditional distillation that requires access to model internals, Ustad u
 - 🔄 **Cross-Family** — Train TinyLlama from Qwen, or any combination
 - 📊 **Real-Time Visualization** — Live gradient flow and training metrics
 - 🎨 **Premium Interface** — Futuristic dark theme with drag-and-drop support
+
+---
+
+## 🖼️ Screenshots
+
+**Full Interface — Teacher panel (left), Student panel (right), with real-time visualization**
+
+![Ustad main interface](screenshots/main-ui.png)
+
+**Training Configuration — Hardware-adaptive hyperparameters, QLoRA toggle, and VRAM-aware model catalog**
+
+![Training config panel](screenshots/training-config.png)
 
 ---
 
@@ -546,6 +558,8 @@ MIT License - see [LICENSE](LICENSE) for details.
 - [Self-Instruct](https://arxiv.org/abs/2212.10560) — Automated instruction generation
 - [QLoRA](https://arxiv.org/abs/2305.14314) — Efficient fine-tuning
 - [Distilling Step-by-Step](https://arxiv.org/abs/2305.02301) — Task-specific distillation
+
+**Built by:** [Rupjyoti Talukdar](https://github.com/MadB0i) (MadB0i), with development assistance from [Claude](https://www.anthropic.com/) (Anthropic).
 
 ---
 
